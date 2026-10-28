@@ -4,7 +4,6 @@
 [![AWS S3](https://img.shields.io/badge/AWS-S3%20Bucket-569A31?logo=amazons3&logoColor=white)](https://aws.amazon.com/s3/)
 [![CloudFront](https://img.shields.io/badge/AWS-CloudFront%20CDN-D05C4C?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/cloudfront/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
@@ -162,8 +161,3 @@ To clean up all provisioned AWS resources and avoid unnecessary charges:
 cd terraform
 terraform destroy -auto-approve
 ```
-
----
-
-## 📜 License
-This project is open-source and available under the [MIT License](LICENSE).
