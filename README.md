@@ -4,6 +4,7 @@
 [![AWS S3](https://img.shields.io/badge/AWS-S3%20Bucket-569A31?logo=amazons3&logoColor=white)](https://aws.amazon.com/s3/)
 [![CloudFront](https://img.shields.io/badge/AWS-CloudFront%20CDN-D05C4C?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/cloudfront/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
@@ -11,17 +12,17 @@
 
 This project implements a secure, highly available, and cost-efficient **Serverless Static Website Hosting Platform** on AWS using **Terraform (Infrastructure as Code)** and **GitHub Actions**.
 
-Rather than running expensive virtual machines (EC2) to host static web content, this architecture uses:
+Rather than running compute-heavy virtual machines (EC2) to host static web content, this architecture uses:
 1. **Amazon S3** as a private object storage origin.
 2. **Amazon CloudFront** as a global Content Delivery Network (CDN) with modern **Origin Access Control (OAC)**.
-3. **GitHub Actions** to automate deployments on every Git commit with instant cache invalidation.
+3. **GitHub Actions** to automate deployments on every Git commit with instant edge cache invalidation.
 
 ```mermaid
 flowchart LR
     Dev["Developer (Git Push)"] -->|Trigger Push| GHA["GitHub Actions CI/CD"]
     
     subgraph CI_CD ["Automation Workflow"]
-        GHA -->|1. Sync Files| S3["Amazon S3 Bucket\n(Strictly Private)"]
+        GHA -->|1. Sync Assets| S3["Amazon S3 Bucket\n(Strictly Private)"]
         GHA -->|2. Invalidate Cache| CF["Amazon CloudFront CDN\n(Edge PoP Locations)"]
     end
 
@@ -34,16 +35,13 @@ flowchart LR
 
 ---
 
-## 🎯 Resume Bullet Points (Copy & Paste)
+## ✨ Key Highlights
 
-You can place this directly into your resume under your Projects section:
-
-> **Serverless Static Website & Automated CI/CD Platform**  
-> *AWS (S3, CloudFront, IAM), Terraform, GitHub Actions, HTML5/CSS3*
-> - **Provisioned a secure serverless hosting platform** using Terraform, configuring a private Amazon S3 bucket, CloudFront CDN distribution, and custom 404 error responses.
-> - **Secured S3 bucket access using Origin Access Control (OAC)**, enforcing TLS encryption (HTTP-to-HTTPS redirect) and blocking all direct public internet access.
-> - **Built a GitHub Actions CI/CD pipeline** that triggers on code commits to automatically sync updated assets to S3 and invalidate CloudFront edge caches for zero-downtime updates.
-> - **Optimized global delivery performance and cloud costs**, achieving sub-50ms edge latency while operating entirely within the AWS Free Tier ($0/month infrastructure cost).
+- **Infrastructure as Code (IaC):** Fully automated provisioning of S3 buckets, CloudFront CDN distribution, and IAM policies using Terraform.
+- **Modern Security Architecture:** Origin Access Control (OAC) ensures that only CloudFront can read from the S3 bucket via SigV4 signing. All direct public access is blocked.
+- **Automated CI/CD Pipeline:** GitHub Actions workflow automatically syncs updated static assets to S3 and triggers a CloudFront cache invalidation on every push.
+- **High Performance & Low Latency:** Edge caching across AWS Points of Presence (PoPs) provides global sub-50ms response times.
+- **Zero Idle Compute Costs:** Operating entirely serverless eliminates VM maintenance and runs within the AWS Free Tier.
 
 ---
 
@@ -54,7 +52,7 @@ aws-serverless-static-website-cicd/
 ├── website/                             # Static Web Application Source
 │   ├── index.html                       # Responsive HTML5 landing page
 │   ├── error.html                       # Custom 404 error page
-│   ├── style.css                        # Modern CSS design system
+│   ├── style.css                        # Modern CSS styling
 │   └── app.js                           # Interactive edge latency telemetry
 ├── terraform/                           # Infrastructure as Code (IaC)
 │   ├── main.tf                          # S3 bucket, CloudFront distribution, OAC, bucket policy
@@ -70,29 +68,28 @@ aws-serverless-static-website-cicd/
 │   ├── destroy-infra.sh                 # Safe teardown runner
 │   └── sync-manual.sh                   # Manual CLI deploy script
 ├── .gitignore
-└── README.md                            # Comprehensive project guide
+└── README.md                            # Project documentation
 ```
 
 ---
 
-## 🔒 Key Security Architecture: Why Origin Access Control (OAC)?
+## 🔒 Security Architecture: Origin Access Control (OAC)
 
-Older AWS tutorials often tell people to enable *"S3 Static Website Hosting"* and make the entire S3 bucket publicly readable (`0.0.0.0/0`). **This is a security anti-pattern in modern cloud engineering.**
+Directly exposing an S3 bucket to the public internet using public read policies is a security vulnerability. This project follows AWS security best practices:
 
-In this project:
-* **The S3 bucket is completely private.** All 4 AWS Block Public Access settings are set to `true`.
-* **Origin Access Control (OAC):** We use AWS's latest recommended signing mechanism (SigV4) to allow **only** our CloudFront distribution ARN to retrieve objects from S3.
+* **S3 Block Public Access:** All 4 public access block settings (`block_public_acls`, `block_public_policy`, `ignore_public_acls`, `restrict_public_buckets`) are enabled.
+* **Origin Access Control (OAC):** Uses AWS SigV4 request signing to restrict S3 bucket reads strictly to the provisioned CloudFront distribution ARN.
 * **HTTPS Enforcement:** CloudFront automatically redirects any insecure `http://` requests to secure `https://` with TLS 1.2+.
 
 ---
 
-## 🚀 Step-by-Step Deployment Guide
+## 🚀 Deployment Guide
 
 ### Prerequisites
 - [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) installed and configured (`aws configure`).
 - [Terraform](https://www.terraform.io/downloads.html) installed (>= 1.5.0).
 
-### 1. Provision Infrastructure with Terraform
+### 1. Provision Infrastructure
 ```bash
 cd terraform
 
@@ -106,43 +103,60 @@ terraform plan
 terraform apply -auto-approve
 ```
 
-Upon completion, Terraform will output your live endpoints:
-- `s3_bucket_name`: e.g., `serverless-static-site-prod-abc123`
-- `cloudfront_distribution_id`: e.g., `E1234567890ABC`
-- `cloudfront_domain_name`: e.g., `https://d111111abcdef8.cloudfront.net`
+Terraform outputs the following upon completion:
+- `s3_bucket_name`: Name of the private S3 bucket
+- `cloudfront_distribution_id`: ID of the CloudFront distribution
+- `cloudfront_domain_name`: Public HTTPS URL of the CloudFront endpoint
 
-### 2. Upload the Website Files
-You can upload the website files immediately using the helper script:
+### 2. Upload Website Files
+You can upload the static assets using the helper script:
 ```bash
 cd ..
 ./scripts/sync-manual.sh <S3_BUCKET_NAME> <CLOUDFRONT_DIST_ID>
 ```
-Or open the `cloudfront_domain_name` directly in your browser!
+Or view the site by visiting the `cloudfront_domain_name` URL in your browser.
 
 ---
 
-## 🔄 Setting Up Automated GitHub Actions CI/CD
+## 🔄 Automated CI/CD Workflow (GitHub Actions)
 
-To make the website deploy automatically whenever you run `git push`:
+The repository includes a GitHub Actions pipeline (`.github/workflows/deploy.yml`) that executes on every push to `main`:
 
-1. Push this repository to your GitHub account.
-2. In your GitHub repository, go to **Settings > Secrets and variables > Actions**.
-3. Add the following repository secrets:
-   - `AWS_ACCESS_KEY_ID`: Your AWS IAM access key ID.
-   - `AWS_SECRET_ACCESS_KEY`: Your AWS IAM secret access key.
-   - `AWS_REGION`: `us-east-1` (or your chosen region).
-   - `S3_BUCKET_NAME`: The S3 bucket name from `terraform output`.
-   - `CLOUDFRONT_DIST_ID`: The CloudFront distribution ID from `terraform output`.
+1. **Asset Sync:** Automatically synchronizes the `website/` directory to the target S3 bucket with optimized `Cache-Control` headers.
+2. **Cache Invalidation:** Creates an instant CloudFront invalidation (`/*`) so updates reflect across all global edge locations immediately.
 
-Now, anytime you edit `website/index.html` and commit, GitHub Actions will:
-1. Sync updated files to S3 with optimal `Cache-Control` headers.
-2. Invalidate the CloudFront cache (`/*`) so changes appear instantly worldwide.
+### Required GitHub Secrets
+To enable the automated pipeline, configure these secrets under **Settings > Secrets and variables > Actions**:
+
+| Secret Name | Description |
+| :--- | :--- |
+| `AWS_ACCESS_KEY_ID` | AWS IAM Access Key ID |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM Secret Access Key |
+| `AWS_REGION` | Target AWS Region (e.g., `us-east-1`) |
+| `S3_BUCKET_NAME` | Value from Terraform output `s3_bucket_name` |
+| `CLOUDFRONT_DIST_ID` | Value from Terraform output `cloudfront_distribution_id` |
+
+---
+
+## 💡 Architecture & Design FAQs
+
+### Why S3 and CloudFront over an EC2 instance?
+Static websites (HTML, CSS, JS) do not require a dedicated backend server runtime. Using S3 with CloudFront delivers 99.99% availability, zero OS patching or server maintenance, global edge distribution, and near-zero cost under the AWS Free Tier.
+
+### How does cache invalidation work in the pipeline?
+CloudFront caches content at edge locations based on TTL headers. When new assets are pushed to S3, edge servers would otherwise serve stale files until the cache expires. The pipeline executes `aws cloudfront create-invalidation --paths '/*'` to refresh edge nodes immediately.
+
+### Why use OAC instead of legacy OAI (Origin Access Identity)?
+OAI is AWS's legacy mechanism that does not support all modern features or SSE-KMS encryption. Origin Access Control (OAC) is the current AWS standard that supports SigV4 signing, custom header forwarding, and enhanced security policies.
+
+### How are 404 errors handled?
+The CloudFront distribution is configured with custom error responses for HTTP 403 and 404 status codes, serving a custom `error.html` page smoothly without exposing raw XML errors.
 
 ---
 
 ## 🧹 Infrastructure Teardown
 
-To delete all provisioned AWS resources and ensure zero lingering costs:
+To clean up all provisioned AWS resources and avoid unnecessary charges:
 
 ```bash
 cd terraform
@@ -151,21 +165,5 @@ terraform destroy -auto-approve
 
 ---
 
-## 🎓 Interview Cheat Sheet: 5 Common Questions & Bulletproof Answers
-
-When discussing this project in a job interview, here are the exact answers to common questions:
-
-### 1. "Why host on S3 and CloudFront instead of an EC2 instance or Nginx?"
-> *"Static websites consist of static assets (HTML, CSS, JS) that do not require server-side runtime compute. By using S3 and CloudFront, we achieve a serverless architecture with 99.99% availability, zero server maintenance/patching, sub-50ms edge latency via CloudFront's global Points of Presence, and virtually $0 in hosting costs under the AWS Free Tier."*
-
-### 2. "How do you protect the S3 bucket from being accessed directly by the public?"
-> *"I enabled AWS S3 Block Public Access to disable public ACLs and bucket policies. Then, I configured CloudFront Origin Access Control (OAC), which uses SigV4 authentication. The S3 bucket policy grants `s3:GetObject` permission strictly to the CloudFront service principal with a condition matching our specific distribution ARN."*
-
-### 3. "What is cache invalidation and why did you put it in the CI/CD pipeline?"
-> *"CloudFront caches static files at edge locations based on TTL (Time-To-Live). If you update a file in S3, edge servers would still serve the old cached version until the TTL expires. In our GitHub Actions pipeline, we run `aws cloudfront create-invalidation --paths '/*'` after syncing to S3, which forces edge nodes to fetch the latest version immediately for users."*
-
-### 4. "What is the difference between OAC and the older OAI (Origin Access Identity)?"
-> *"OAI is AWS's legacy method and only supports basic S3 operations without KMS SSE-KMS encryption or all AWS regions. OAC (Origin Access Control) is AWS's modern standard that uses SigV4 signing, supports server-side encryption with KMS, and has better security posture."*
-
-### 5. "How does CloudFront handle a 404 error?"
-> *"I configured custom error responses in the CloudFront distribution in Terraform. When a visitor requests a non-existent URL or file, CloudFront catches the 404 or 403 HTTP status from S3 and serves our custom `error.html` page smoothly."*
+## 📜 License
+This project is open-source and available under the [MIT License](LICENSE).
