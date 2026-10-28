@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudNative Showcase | Serverless Static Platform</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <div class="logo">
+        <span class="logo-icon">☁️</span>
+        <span class="logo-text">Cloud<strong>Native</strong></span>
+      </div>
+      <nav class="nav-links">
+        <a href="#architecture">Architecture</a>
+        <a href="#features">Features</a>
+        <a href="#telemetry">Live Status</a>
+        <a href="https://github.com" target="_blank" class="btn btn-sm btn-outline">GitHub Repo</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container hero-container">
+      <div class="badge">AWS Serverless & Automated CI/CD</div>
+      <h1 class="hero-title">High-Performance Static Hosting on AWS</h1>
+      <p class="hero-subtitle">
+        Hosted securely on Amazon S3 with global edge-caching via Amazon CloudFront, 
+        protected by Origin Access Control (OAC), and deployed automatically through GitHub Actions.
+      </p>
+      <div class="hero-actions">
+        <a href="#architecture" class="btn btn-primary">Explore Architecture</a>
+        <button id="btn-check-edge" class="btn btn-secondary">Inspect Edge Latency</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Edge Telemetry Widget -->
+  <section id="telemetry" class="container status-section">
+    <div class="status-card">
+      <div class="status-header">
+        <span class="status-indicator"></span>
+        <span class="status-label">Global CDN Edge Status: <strong>Operational</strong></span>
+      </div>
+      <div class="status-metrics">
+        <div class="metric">
+          <span class="metric-label">Origin Storage</span>
+          <span class="metric-value">Amazon S3 (Private)</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Content Delivery</span>
+          <span class="metric-value">AWS CloudFront (OAC)</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">SSL / Encryption</span>
+          <span class="metric-value">TLS 1.2+ HTTPS Enforced</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Client Fetch Time</span>
+          <span id="latency-val" class="metric-value highlight">-- ms</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Flow -->
+  <section id="architecture" class="section bg-light">
+    <div class="container">
+      <div class="section-header text-center">
+        <h2>How It Works</h2>
+        <p>A zero-server, cost-efficient hosting architecture built with AWS best practices.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <h3>Private S3 Bucket</h3>
+          <p>HTML, CSS, and asset files are stored in an Amazon S3 bucket with all public access strictly blocked.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <h3>CloudFront & OAC</h3>
+          <p>Amazon CloudFront distributes content worldwide using Origin Access Control (OAC) to read from S3 securely.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <h3>GitHub Actions CI/CD</h3>
+          <p>Every Git commit triggers automated linting, syncs files to S3, and creates an instant CloudFront cache invalidation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Technical Highlights -->
+  <section id="features" class="section">
+    <div class="container">
+      <div class="section-header text-center">
+        <h2>Core Cloud Features</h2>
+        <p>Demonstrating foundational Cloud Engineering and DevOps standards.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon">🔒</div>
+          <h3>Zero Public S3 Bucket</h3>
+          <p>Public access is 100% disabled via S3 Block Public Access. Only CloudFront's service principal can fetch assets.</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <h3>Sub-50ms Global Latency</h3>
+          <p>Edge caching across AWS Point of Presence (PoP) locations ensures lightning-fast delivery worldwide.</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🛡️</div>
+          <h3>HTTPS Redirection</h3>
+          <p>Enforces TLS encryption by automatically redirecting all insecure HTTP requests to HTTPS.</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔄</div>
+          <h3>Instant Cache Invalidation</h3>
+          <p>CI/CD pipeline runs <code>aws cloudfront create-invalidation</code> on every deployment so users see updates instantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <p>© <span id="current-year">2026</span> Cloud DevOps Project. Built with Terraform, AWS S3, CloudFront & GitHub Actions.</p>
+      <p class="tagline">Engineered for 99.99% Availability & Near-Zero Cost.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

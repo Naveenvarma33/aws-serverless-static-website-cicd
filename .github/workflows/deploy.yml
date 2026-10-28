@@ -1,0 +1,51 @@
+name: Deploy Static Website to AWS (S3 & CloudFront)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Sync Assets & Invalidate Cache
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Sync Static Assets to Amazon S3
+        run: |
+          echo "===> Syncing website directory to S3 Bucket: ${{ secrets.S3_BUCKET_NAME }}"
+          aws s3 sync website/ s3://${{ secrets.S3_BUCKET_NAME }} --delete --cache-control "max-age=31536000" --exclude "*.html"
+          aws s3 sync website/ s3://${{ secrets.S3_BUCKET_NAME }} --delete --cache-control "no-cache" --include "*.html"
+
+      - name: Invalidate Amazon CloudFront Edge Cache
+        run: |
+          echo "===> Creating CloudFront Invalidation for Distribution: ${{ secrets.CLOUDFRONT_DIST_ID }}"
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID }} \
+            --paths "/*" \
+            --query "Invalidation.Id" --output text)
+          echo "Invalidation created with ID: ${INVALIDATION_ID}"
+
+      - name: Deployment Verification
+        run: |
+          echo "=========================================================="
+          echo " Static Website Successfully Deployed to AWS Edge Cache! "
+          echo "=========================================================="

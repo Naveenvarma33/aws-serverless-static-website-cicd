@@ -1,0 +1,5 @@
+aws_region     = "us-east-1"
+project_name   = "serverless-portfolio"
+environment    = "prod"
+index_document = "index.html"
+error_document = "error.html"
